@@ -130,6 +130,9 @@ namespace OmniSharp
 
             if (!string.IsNullOrWhiteSpace(projectPath))
             {
+                if (request.Sources == null)
+                    request.Sources = Enumerable.Empty<string>();
+                    
                 var token = CancellationToken.None;
                 // Temp?
                 var filter = new SearchFilter()
@@ -139,6 +142,11 @@ namespace OmniSharp
                 var foundVersions = new List<NuGetVersion>();
                 var repositoryProvider = new OmniSharpSourceRepositoryProvider(projectPath);
                 var repos = repositoryProvider.GetRepositories().ToArray();
+                if (request.Sources.Any())
+                {
+                    // Reduce to just the sources we requested
+                    repos = repos.Join(request.Sources, x => x.PackageSource.Source, x => x, (x, y) => x).ToArray();
+                }
                 foreach (var repo in repos)
                 {
                     // TODO: Swap when bug is fixed
